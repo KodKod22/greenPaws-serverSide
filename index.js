@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require("express");
 const app = express();
-const db = require('./dbConnection');
+const { locationsRouter } = require('./routers/locationsRouter.js');
 const port = process.env.PORT || 8080;
 
 app.use((req, res, next) => {
@@ -14,13 +14,10 @@ app.use((req, res, next) => {
     next();
 });
 
-db.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('❌ Connection error:', err);
-  } else {
-    console.log('✅ Connected! Current time:', res.rows[0]);
-  }
-});
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+
+app.use('/api/locations',locationsRouter);
 
 app.listen(port, () => {
     console.log(`Express server listening on port ${port}`);
