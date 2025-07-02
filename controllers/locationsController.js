@@ -10,6 +10,14 @@ exports.locationsController = {
         }
 
     },
+    async getLocation(req,res){
+        try{
+            const result = await dbConnection.query('SELECT * FROM Locations WHERE locationsid = $1',[req.body.id]);
+            res.status(200).json(result.rows);
+        }catch(err){
+            res.status(500).json({error:'Database error'});
+        }
+    },
     async addBottles(req,res) {
         try{
             const { userID, locationId, bottleCount } = req.body;   
