@@ -5,6 +5,7 @@ const  { checkUser, checkLocationIsActive, checkBottlesCount }  = require('../mi
 
 locationsRouter.get('/Locations',locationsController.getLocations);
 locationsRouter.get('/:locationId',locationsController.getLocation);
-locationsRouter.post('/addBottles',checkUser, checkLocationIsActive, checkBottlesCount,locationsController.addBottles)
+locationsRouter.post('/addBottles',checkUser, checkLocationIsActive, checkBottlesCount,locationsController.addBottles);
+locationsRouter.put('/updateLocation',locationsController.updateLocation);
 
 module.exports = { locationsRouter }
