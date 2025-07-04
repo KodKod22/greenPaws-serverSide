@@ -74,6 +74,11 @@ exports.locationsController = {
                 cityId = newCityIdResult.rows[0].cityid;
             }
 
+            const locationResult = await dbConnection.query('SELECT locationsid from locations WHERE street = $1 AND cityid = $2',[streetName,cityId]);
+            if (locationResult.rows.length > 0 ) {
+                return res.status(409).json({error: "Location already exists"});
+            }
+
             const encoded = encodeURIComponent(`${streetName} , ${city}`);
             const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${process.env.API_KEY}`;
             const resolute = await fetch(url);
@@ -85,13 +90,26 @@ exports.locationsController = {
 
             const locationId = insertLocation.rows[0].locationsid;
 
-            res.status(201).json({ message: "Location added successfully",locationId,});
+            res.status(200).json({ message: "Location added successfully",locationId,});
 
         }catch(err){
             console.error("Add location error:", err);
             res.status(500).json({ error: "Server error during addLocation" });
         }
         
+    }, async removeLocation(req,res){
+        try{
+            const { locationId } = req.body;
+            await dbConnection.query('DELETE FROM RecycleActivity WHERE locationid = $1', [locationId]);
+            const result =  await dbConnection.query('DELETE FROM Locations WHERE locationsid = $1', [locationId]);
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: "Location not found" });
+            }
+            res.status(200).json({ message: "Location deleted successfully" });
+        }catch(err){
+            res.status(500).json({ error: 'Server error' });
+        }
+
     },
     async addBottles(req,res) {
         try{
