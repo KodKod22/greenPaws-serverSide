@@ -61,6 +61,38 @@ exports.locationsController = {
         
 
     },
+    async addLocation(req,res){
+        try{
+            const { city , streetName , animalFood , status } = req.body;
+            let cityId;
+            const cityIdResult = await dbConnection.query('SELECT cityid from cities WHERE cityname = $1',[city]);
+
+            if (cityIdResult.rows.length > 0) {
+                cityId = cityIdResult.rows[0].cityid;
+            }else{
+                const newCityIdResult = await dbConnection.query('INSERT INTO cities (cityname) VALUES ($1) RETURNING cityid',[city]);
+                cityId = newCityIdResult.rows[0].cityid;
+            }
+
+            const encoded = encodeURIComponent(`${streetName} , ${city}`);
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${process.env.API_KEY}`;
+            const resolute = await fetch(url);
+            const data = await resolute.json();
+
+            const landmarks = data.results[0].geometry.location;
+            const landmarksText = `${landmarks.lat},${landmarks.lng}`;
+            const insertLocation = await dbConnection.query('INSERT INTO Locations (cityid, street, animelfood, status, landmarks) VALUES ($1, $2, $3, $4, $5) RETURNING locationsid', [cityId, streetName, animalFood, status,landmarksText]);
+
+            const locationId = insertLocation.rows[0].locationsid;
+
+            res.status(201).json({ message: "Location added successfully",locationId,});
+
+        }catch(err){
+            console.error("Add location error:", err);
+            res.status(500).json({ error: "Server error during addLocation" });
+        }
+        
+    },
     async addBottles(req,res) {
         try{
             const { userID, locationId, bottleCount } = req.body;   

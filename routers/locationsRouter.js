@@ -7,5 +7,6 @@ locationsRouter.get('/Locations',locationsController.getLocations);
 locationsRouter.get('/:locationId',locationsController.getLocation);
 locationsRouter.post('/addBottles',checkUser, checkLocationIsActive, checkBottlesCount,locationsController.addBottles);
 locationsRouter.put('/updateLocation',locationsController.updateLocation);
+locationsRouter.post('/newLocation',locationsController.addLocation)
 
 module.exports = { locationsRouter }
