@@ -23,5 +23,25 @@ exports.requestController = {
         }catch(error){
             res.status(500).json({error:'Database error'});
         } 
+    },
+    async getRequests(req,res){
+        try{
+            const result = await dbConnection.query(`
+                SELECT locations.street,
+                "User".username AS username,
+                userreguests.description,
+                userreguests.adminrespons,
+                userreguests.status,
+                userreguests.createat
+                FROM userreguests
+                INNER JOIN locations ON userreguests.locationsid = locations.locationsid
+                INNER JOIN "User" ON userreguests.userid = "User".userid`);            
+            const formattedRows = result.rows.map(row => ({...row,
+                createat: new Date(row.createat).toISOString().split('T')[0]}));
+            res.status(200).json(formattedRows);
+        }catch(error){
+             console.error("getRequests error:", error);
+            res.status(500).json({error:'Database error'});
+        }
     }
 }
