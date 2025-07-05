@@ -70,5 +70,18 @@ exports.requestController = {
             console.error("Update error:", error);
             res.status(500).json({ err: "Server error during update" });
         }
+    },
+    async deleteRequest(req,res){
+     try{
+            const { requestId } = req.body;
+            const result = await dbConnection.query('DELETE FROM userReguests WHERE requestID = $1', [requestId]); 
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: "Request not found" });
+            }
+            res.status(200).json({ message: "Request deleted successfully" });
+        }catch(err){
+            res.status(500).json({ error: 'Server error' });
+        }
+
     }
 }
