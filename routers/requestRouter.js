@@ -6,7 +6,8 @@ const  { checkUser, checkLocation }  = require('../middleware/checkReg.js');
 requestRouter.get('/requests',requestController.getRequests);
 requestRouter.post('/addRequest',checkUser, checkLocation,requestController.addRequest);
 requestRouter.get('/:userId',requestController.getUserRequest);
-//update request
+requestRouter.put('/updateRequest',requestController.updateRequest);
+
 //delete request
 
 module.exports = { requestRouter }

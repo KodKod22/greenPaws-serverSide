@@ -43,5 +43,32 @@ exports.requestController = {
              console.error("getRequests error:", error);
             res.status(500).json({error:'Database error'});
         }
+    },
+    async updateRequest(req,res){
+        try{
+            const {requestId , status , adminResponse} = req.body;
+            const fieldsToUpdate =[];
+            const values = [];
+            let index = 1;
+            if (status !== undefined) {
+                fieldsToUpdate.push(`status = $${index++}`);
+                values.push(status);   
+            }
+            if (adminResponse !== undefined) {
+                fieldsToUpdate.push(`adminrespons = $${index++}`);
+                values.push(adminResponse); 
+            }
+            values.push(requestId);
+            const query = `UPDATE userReguests SET ${fieldsToUpdate.join(', ')} WHERE requestid = $${index} RETURNING *`;
+            const result = await dbConnection.query(query, values);
+            if (result.rowCount === 0) {
+                return res.status(404).json({ message: "User request not found" });
+            }
+
+            res.status(200).json({ message: "User request updated successfully", location: result.rows[0] });
+        }catch(error){
+            console.error("Update error:", error);
+            res.status(500).json({ err: "Server error during update" });
+        }
     }
 }
