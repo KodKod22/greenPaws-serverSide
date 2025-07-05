@@ -18,7 +18,8 @@ exports.usersController = {
                         const userInfo = {
                             userId:result.rows[0].userid,
                             userName:result.rows[0].username,
-                            userType:result.rows[0].usertype
+                            userType:result.rows[0].usertype,
+                            userImag:result.rows[0].imagtrace 
                         }
                         res.status(200).json(userInfo);
                     }else {

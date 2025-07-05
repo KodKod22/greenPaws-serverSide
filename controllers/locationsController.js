@@ -1,19 +1,42 @@
 const  dbConnection  = require('../dbConnection.js');
 exports.locationsController = {
-    async getLocations(req,res){
-        try{
-            const result = await dbConnection.query('SELECT * FROM Locations')
-            
-            res.status(200).json(result.rows);
-        }catch(err){
-            
-            res.status(500).json({error:'Database error'})
-        }
+ async getLocations(req, res) {
+  try {
+    const result = await dbConnection.query(`
+      SELECT 
+        locations.locationsid,
+        cities.cityname,
+        locations.street,
+        locations.animelfood,
+        locations.status,
+        locations.foodcapacity,
+        locations.landmarks
+      FROM locations
+      INNER JOIN cities ON locations.cityid = cities.cityid
+    `);
 
-    },
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("getLocations error:", err);
+    res.status(500).json({ error: 'Database error' });
+  }
+},
     async getLocation(req,res){
         try{
-            const result = await dbConnection.query('SELECT * FROM Locations WHERE locationsid = $1',[req.body.id]);
+             const { locationId } = req.params;
+            const result = await dbConnection.query(`
+            SELECT 
+                locations.locationsid,
+                locations.street,
+                locations.animelfood,
+                locations.status,
+                locations.foodcapacity,
+                locations.landmarks,
+                cities.cityname
+            FROM locations
+            INNER JOIN cities ON locations.cityid = cities.cityid
+            WHERE locations.locationsid = $1
+        `, [locationId]);
             if (result.rows.length === 0) {
                return res.status(404).json({message:"no location in the data base"});
             }
