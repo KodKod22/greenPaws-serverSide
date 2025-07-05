@@ -30,5 +30,26 @@ exports.usersController = {
             console.error("Database error:", error);
             res.status(500).json({ error: "Internal server error" });
         }
+    },
+    async getUserRecycleStats(req,res){
+        try{
+            const { userId } = req.query;
+            const resolute = await dbConnection.query(`
+                SELECT 
+                    locations.street,
+                    SUM(RecycleActivity.bottleCount) AS total_bottles
+                FROM RecycleActivity
+                INNER JOIN locations ON RecycleActivity.locationID = locations.locationsid
+                WHERE 
+                    userID = $1
+                    AND RecycleActivity.logDate >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+                GROUP BY locations.street;`,[userId]);
+            if (resolute.rows.length === 0) {
+               return res.status(404).json({message:"no recycle activity in the data base of the user"});
+            }
+            res.status(200).json(resolute.rows);
+        }catch(error){
+            res.status(500).json({error:'Database error'});
+        }
     }
 }
