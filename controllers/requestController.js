@@ -2,28 +2,44 @@ const  dbConnection  = require('../dbConnection.js');
 exports.requestController = {
     async addRequest(req,res){
         try{
-            const { userID,locationID,description } = req.body;
-            const result = await dbConnection.query('INSERT INTO userreguests (userID,locationsid,description,createat) VALUES ($1,$2,$3,NOW())',[userID,locationID,description]);
+            const { userId, locationId, description } = req.body;
+            const result = await dbConnection.query(
+                'INSERT INTO userreguests (userID, locationsid, description, createat) VALUES ($1,$2,$3,NOW())',
+                [userId, locationId, description]
+            );
             res.status(200).json({ message: "request has been added", entry: result.rows[0] });
         }catch(err){
             res.status(500).json({error:'Database error'})
         }
     },
-    async getUserRequest(req,res){
-        try{
-            const { userID } = req.body;
-            console.log(userID);
-            const result = await dbConnection.query('SELECT locations.street, userreguests.description,userreguests.adminrespons,userreguests.status,userreguests.createat FROM userreguests INNER JOIN locations ON userreguests.locationsid = locations.locationsid WHERE userreguests.userid = $1',[userID]);
-            if ( result.rows.length === 0) {
-                return res.status(404).json({message:"no request in the data base"});
-            }
-            const formattedRows = result.rows.map(row => ({...row,
-                createat: new Date(row.createat).toISOString().split('T')[0]}));
-            res.status(200).json(formattedRows);
-        }catch(error){
-            res.status(500).json({error:'Database error'});
-        } 
-    },
+    async getUserRequest(req, res) {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: "userId param is missing" });
+    }
+
+    const result = await dbConnection.query(`
+      SELECT userreguests.requestID,locations.street, userreguests.description, userreguests.adminrespons, userreguests.status, userreguests.createat
+      FROM userreguests 
+      INNER JOIN locations ON userreguests.locationsid = locations.locationsid
+      WHERE userreguests.userid = $1`, [userId]);
+
+    if (result.rows.length === 0) {
+        return res.status(200).json([]);    
+    }
+
+    const formattedRows = result.rows.map(row => ({
+      ...row,
+      createat: new Date(row.createat).toISOString().split('T')[0]
+    }));
+
+    res.status(200).json(formattedRows);
+  } catch (error) {
+    console.error("getUserRequest error:", error);
+    res.status(500).json({ error: 'Database error' });
+  }
+},
     async getRequests(req,res){
         try{
             const result = await dbConnection.query(`
@@ -73,7 +89,7 @@ exports.requestController = {
     },
     async deleteRequest(req,res){
      try{
-            const { requestId } = req.body;
+            const { requestId } = req.params;
             const result = await dbConnection.query('DELETE FROM userReguests WHERE requestID = $1', [requestId]); 
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Request not found" });

@@ -7,6 +7,6 @@ requestRouter.get('/requests',requestController.getRequests);
 requestRouter.post('/addRequest',checkUser, checkLocation,requestController.addRequest);
 requestRouter.get('/:userId',requestController.getUserRequest);
 requestRouter.put('/updateRequest',requestController.updateRequest);
-requestRouter.delete('/deleteRequest',requestController.deleteRequest);
+requestRouter.delete('/deleteRequest/:requestId',requestController.deleteRequest);
 
 module.exports = { requestRouter }
