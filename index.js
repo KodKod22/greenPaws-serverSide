@@ -4,6 +4,7 @@ const app = express();
 const { locationsRouter } = require('./routers/locationsRouter.js');
 const { requestRouter } = require('./routers/requestRouter.js');
 const { usersRouter } = require('./routers/usersRouter.js');
+const { statisticsRouter } = require('./routers/statisticsRouter.js');
 const port = process.env.PORT || 8080;
 
 app.use((req, res, next) => {
@@ -22,6 +23,7 @@ app.use(express.urlencoded({extended:true}));
 app.use('/api/locations',locationsRouter);
 app.use('/api/requests',requestRouter);
 app.use('/api/users',usersRouter);
+app.use('/api/statistics',statisticsRouter);
 
 app.listen(port, () => {
     console.log(`Express server listening on port ${port}`);
