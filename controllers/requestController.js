@@ -20,18 +20,20 @@ exports.requestController = {
     }
 
     const result = await dbConnection.query(`
-      SELECT userreguests.requestID,locations.street, userreguests.description, userreguests.adminrespons, userreguests.status, userreguests.createat
+      SELECT userreguests.requestID, locations.street, userreguests.description,
+             userreguests.adminrespons, userreguests.status, userreguests.createat
       FROM userreguests 
       INNER JOIN locations ON userreguests.locationsid = locations.locationsid
       WHERE userreguests.userid = $1`, [userId]);
 
     if (result.rows.length === 0) {
-        return res.status(200).json([]);    
+      return res.status(200).json([]);    
     }
 
     const formattedRows = result.rows.map(row => ({
       ...row,
-      createat: new Date(row.createat).toISOString().split('T')[0]
+      
+      createat: new Date(row.createat).toLocaleDateString("he-IL")
     }));
 
     res.status(200).json(formattedRows);
