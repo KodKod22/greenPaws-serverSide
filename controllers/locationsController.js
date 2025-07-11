@@ -86,7 +86,7 @@ exports.locationsController = {
     },
     async addLocation(req,res){
         try{
-            const { city , streetName , animalFood , status } = req.body;
+            const { city , streetName , animalFood , status } = req.body.newLocation;
             let cityId;
             const cityIdResult = await dbConnection.query('SELECT cityid from cities WHERE cityname = $1',[city]);
 
