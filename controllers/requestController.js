@@ -46,6 +46,7 @@ exports.requestController = {
         try{
             const result = await dbConnection.query(`
                 SELECT locations.street,
+                userreguests.requestID AS requestId,
                 "User".username AS username,
                 userreguests.description,
                 userreguests.adminrespons,
@@ -63,8 +64,10 @@ exports.requestController = {
         }
     },
     async updateRequest(req,res){
+         console.log("🔥 Reached updateRequest route");
         try{
-            const {requestId , status , adminResponse} = req.body;
+            const { requestId , status , adminResponds } = req.body;
+            console.log(req.body);
             const fieldsToUpdate =[];
             const values = [];
             let index = 1;
@@ -72,11 +75,13 @@ exports.requestController = {
                 fieldsToUpdate.push(`status = $${index++}`);
                 values.push(status);   
             }
-            if (adminResponse !== undefined) {
-                fieldsToUpdate.push(`adminrespons = $${index++}`);
-                values.push(adminResponse); 
+         if (adminResponds !== undefined) {
+                fieldsToUpdate.push(`adminRespons = $${index++}`);
+                console.log(adminResponds);
+                values.push(adminResponds); 
             }
             values.push(requestId);
+            console.log(values);
             const query = `UPDATE userReguests SET ${fieldsToUpdate.join(', ')} WHERE requestid = $${index} RETURNING *`;
             const result = await dbConnection.query(query, values);
             if (result.rowCount === 0) {
