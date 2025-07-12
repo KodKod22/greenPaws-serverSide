@@ -45,6 +45,26 @@ exports.locationsController = {
             res.status(500).json({error:'Database error'});
         }
     },
+    async getLocationByName(req,res){
+        try{
+            const { city , streetName } = req.query;
+            let cityId;
+            const cityIdResult = await dbConnection.query('SELECT cityid from cities WHERE cityname = $1',[city]);
+            if (cityIdResult.rows.length > 0) {
+                cityId = cityIdResult.rows[0].cityid;
+            }
+            const result = await dbConnection.query(`
+                SELECT Locations.LocationsId 
+                FROM Locations 
+                WHERE cityid = $1 AND street = $2;`,[cityId,streetName])
+            if (result.rows.length === 0) {
+               return res.status(404).json({message:"no location in the data base"});
+            }
+            res.status(200).json(result.rows);
+        }catch(err){
+            res.status(500).json({error:'Database error'});
+        }
+    },
     async updateLocation(req,res){
         try{
             const { locationId ,animalFood , status , foodCapacity } = req.body;
