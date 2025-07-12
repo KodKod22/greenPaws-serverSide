@@ -122,15 +122,16 @@ exports.locationsController = {
         
     }, async removeLocation(req,res){
         try{
-            const { locationId } = req.body;
+            const { locationId } = req.params;
             await dbConnection.query('DELETE FROM RecycleActivity WHERE locationid = $1', [locationId]);
-            await dbConnection.query('DELETE FROM userReguests WHERE locationid = $1', [locationId]);
+            await dbConnection.query('DELETE FROM userReguests WHERE locationsid = $1', [locationId]);
             const result =  await dbConnection.query('DELETE FROM Locations WHERE locationsid = $1', [locationId]);
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Location not found" });
             }
             res.status(200).json({ message: "Location deleted successfully" });
         }catch(err){
+            console.error("Remove location error:", err);
             res.status(500).json({ error: 'Server error' });
         }
 
