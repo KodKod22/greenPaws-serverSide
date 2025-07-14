@@ -49,14 +49,13 @@ exports.locationsController = {
         try{
             const { city , streetName } = req.query;
             let city_id;
-            const cityIdResult = await dbConnection.query('SELECT city_id from cities WHERE city_name = $1',[city]);
+                       const cityIdResult = await dbConnection.query('SELECT city_id FROM cities WHERE LOWER(city_name) = LOWER($1)', [city]);
             if (cityIdResult.rows.length > 0) {
                 city_id = cityIdResult.rows[0].city_id;
             }
-            const result = await dbConnection.query(`
-                SELECT locations.location_id 
-                FROM locations 
-                WHERE city_id = $1 AND street = $2;`,[city_id,streetName])
+ 
+
+            const result = await dbConnection.query(`SELECT location_id FROM locations WHERE city_id = $1 AND LOWER(street) = LOWER($2)`, [city_id, streetName]);
             if (result.rows.length === 0) {
                return res.status(404).json({message:"no location in the data base"});
             }
