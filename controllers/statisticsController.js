@@ -6,12 +6,12 @@ exports.statisticsController = {
             const resolute = await dbConnection.query(`
                 SELECT 
                     locations.street,
-                    SUM(RecycleActivity.bottleCount) AS total_bottles
-                FROM RecycleActivity
-                INNER JOIN locations ON RecycleActivity.locationID = locations.locationsid
+                    SUM(recycle_activity.bottle_count) AS total_bottles
+                FROM recycle_activity
+                INNER JOIN locations ON recycle_activity.location_id = locations.location_id
                 WHERE 
-                    locationsid = $1
-                    AND RecycleActivity.logDate >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+                    location_id = $1
+                    AND recycle_activity.log_date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
                 GROUP BY locations.street;`,[locationId]);
          if (resolute.rows.length === 0) {
                return res.status(404).json({message:"no recycle activity in the data base of the location"});
@@ -26,11 +26,11 @@ exports.statisticsController = {
             const resolute = await dbConnection.query(`
                 SELECT 
                     locations.street,
-                    SUM(RecycleActivity.bottlecount) AS total_bottles
-                FROM RecycleActivity
-                INNER JOIN locations ON RecycleActivity.locationid = locations.locationsid
+                    SUM(recycle_activity.bottle_count) AS total_bottles
+                FROM recycle_activity
+                INNER JOIN locations ON recycle_activity.location_id = locations.location_id
                 WHERE 
-                    RecycleActivity.logdate >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+                    recycle_activity.log_date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
                 GROUP BY locations.street;`);
             if (resolute.rows.length === 0) {
                return res.status(404).json({message:"no recycle activity in the data base of all the locations"});

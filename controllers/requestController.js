@@ -2,10 +2,10 @@ const  dbConnection  = require('../dbConnection.js');
 exports.requestController = {
     async addRequest(req,res){
         try{
-            const { userId, locationId, description } = req.body;
+            const {user_id, locationId, description } = req.body;
             const result = await dbConnection.query(
-                'INSERT INTO userreguests (userID, locationsid, description, createat) VALUES ($1,$2,$3,NOW())',
-                [userId, locationId, description]
+                'INSERT INTO user_reports ( user_id,location_id, description, created_at) VALUES ($1,$2,$3,NOW())',
+                [ user_id, locationId, description]
             );
             res.status(200).json({ message: "request has been added", entry: result.rows[0] });
         }catch(err){
@@ -14,17 +14,18 @@ exports.requestController = {
     },
     async getUserRequest(req, res) {
   try {
-    const { userId } = req.params;
-    if (!userId) {
-      return res.status(400).json({ error: "userId param is missing" });
+    const { user_id } = req.params;
+    console.log(user_id);
+    if (!user_id) {
+      return res.status(400).json({ error: " user_id param is missing" });
     }
 
     const result = await dbConnection.query(`
-      SELECT userreguests.requestID, locations.street, userreguests.description,
-             userreguests.adminrespons, userreguests.status, userreguests.createat
-      FROM userreguests 
-      INNER JOIN locations ON userreguests.locationsid = locations.locationsid
-      WHERE userreguests.userid = $1`, [userId]);
+      SELECT user_reports.report_id, locations.street, user_reports.description,
+             user_reports.admin_response, user_reports.status, user_reports.created_at
+      FROM user_reports 
+      INNER JOIN locations ON user_reports.location_id = locations.location_id
+      WHERE user_reports. user_id = $1`, [user_id]);
 
     if (result.rows.length === 0) {
       return res.status(200).json([]);    
@@ -33,7 +34,7 @@ exports.requestController = {
     const formattedRows = result.rows.map(row => ({
       ...row,
       
-      createat: new Date(row.createat).toLocaleDateString("he-IL")
+      created_at: new Date(row.created_at).toLocaleDateString("he-IL")
     }));
 
     res.status(200).json(formattedRows);
@@ -46,17 +47,17 @@ exports.requestController = {
         try{
             const result = await dbConnection.query(`
                 SELECT locations.street,
-                userreguests.requestID AS requestId,
-                "User".username AS username,
-                userreguests.description,
-                userreguests.adminrespons,
-                userreguests.status,
-                userreguests.createat
-                FROM userreguests
-                INNER JOIN locations ON userreguests.locationsid = locations.locationsid
-                INNER JOIN "User" ON userreguests.userid = "User".userid`);            
+                user_reports.report_id AS report_id,
+                users.user_name AS user_name,
+                user_reports.description,
+                user_reports.admin_response,
+                user_reports.status,
+                user_reports.created_at
+                FROM user_reports
+                INNER JOIN locations ON user_reports.location_id = locations.location_id
+                INNER JOIN users ON user_reports.user_id = users.user_id`);            
             const formattedRows = result.rows.map(row => ({...row,
-                createat: new Date(row.createat).toISOString().split('T')[0]}));
+                created_at: new Date(row.created_at).toISOString().split('T')[0]}));
             res.status(200).json(formattedRows);
         }catch(error){
              console.error("getRequests error:", error);
@@ -64,10 +65,10 @@ exports.requestController = {
         }
     },
     async updateRequest(req,res){
-         console.log("🔥 Reached updateRequest route");
+        
         try{
-            const { requestId , status , adminResponds } = req.body;
-            console.log(req.body);
+            const { report_id , status , adminResponds } = req.body;
+            
             const fieldsToUpdate =[];
             const values = [];
             let index = 1;
@@ -76,13 +77,11 @@ exports.requestController = {
                 values.push(status);   
             }
          if (adminResponds !== undefined) {
-                fieldsToUpdate.push(`adminRespons = $${index++}`);
-                console.log(adminResponds);
+                fieldsToUpdate.push(`admin_response = $${index++}`);
                 values.push(adminResponds); 
             }
-            values.push(requestId);
-            console.log(values);
-            const query = `UPDATE userReguests SET ${fieldsToUpdate.join(', ')} WHERE requestid = $${index} RETURNING *`;
+            values.push(report_id);
+            const query = `UPDATE user_reports SET ${fieldsToUpdate.join(', ')} WHERE report_id = $${index} RETURNING *`;
             const result = await dbConnection.query(query, values);
             if (result.rowCount === 0) {
                 return res.status(404).json({ message: "User request not found" });
@@ -96,8 +95,8 @@ exports.requestController = {
     },
     async deleteRequest(req,res){
      try{
-            const { requestId } = req.params;
-            const result = await dbConnection.query('DELETE FROM userReguests WHERE requestID = $1', [requestId]); 
+            const { report_id } = req.params;
+            const result = await dbConnection.query('DELETE FROM user_reports WHERE report_id = $1', [report_id]); 
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Request not found" });
             }

@@ -2,24 +2,24 @@ const  dbConnection  = require('../dbConnection.js');
 const bcrypt = require('bcrypt');
 exports.usersController = {
     async getUser(req, res) {
-    const { userName , userPassword} = req.body;
-
+    const { user_name , user_password} = req.body;
+        console.log(user_name);
     try {
-            const result = await dbConnection.query('SELECT * FROM "User" WHERE username = $1',[userName]); 
+            const result = await dbConnection.query('SELECT * FROM users WHERE user_name = $1',[user_name]); 
 
             if (result.rows.length === 0) {
                 console.log("User not found");
                 return res.status(404).json({ message: "User not found" });
             }
-            const hashUserPassword = result.rows[0].userpassword;
-            bcrypt.compare(userPassword,hashUserPassword)
+            const hashUserPassword = result.rows[0].user_password;
+            bcrypt.compare(user_password,hashUserPassword)
                 .then( isMatch => {
                     if (isMatch) {
                         const userInfo = {
-                            userId:result.rows[0].userid,
-                            userName:result.rows[0].username,
-                            userType:result.rows[0].usertype,
-                            userImag:result.rows[0].imagtrace 
+                            user_id:result.rows[0].user_id,
+                            user_name:result.rows[0].user_name,
+                            user_type:result.rows[0].user_type,
+                            image_trace:result.rows[0].image_trace 
                         }
                         res.status(200).json(userInfo);
                     }else {
@@ -33,17 +33,18 @@ exports.usersController = {
     },
     async getUserRecycleStats(req,res){
         try{
-            const { userId } = req.query;
+            const { user_id } = req.query;
+            
             const resolute = await dbConnection.query(`
                 SELECT 
                     locations.street,
-                    SUM(RecycleActivity.bottleCount) AS total_bottles
-                FROM RecycleActivity
-                INNER JOIN locations ON RecycleActivity.locationID = locations.locationsid
+                    SUM(recycle_activity.bottle_count) AS total_bottles
+                FROM recycle_activity
+                INNER JOIN locations ON recycle_activity.location_id = locations.location_id
                 WHERE 
-                    userID = $1
-                    AND RecycleActivity.logDate >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
-                GROUP BY locations.street;`,[userId]);
+                    user_id = $1
+                    AND recycle_activity.log_date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+                GROUP BY locations.street;`,[user_id]);
             if (resolute.rows.length === 0) {
                return res.status(404).json({message:"no recycle activity in the data base of the user"});
             }

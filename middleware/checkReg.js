@@ -3,10 +3,10 @@ const dbConnection = require('../dbConnection');
 module.exports = {
     async checkBottlesCount(req, res, next) {
         try {
-            const { bottleCount } = req.body;
+            const { bottle_count } = req.body;
 
-            if (bottleCount <= 0) {
-                return res.status(400).json({ err: "bottleCount can't be negative or zero" });
+            if (bottle_count <= 0) {
+                return res.status(400).json({ err: "bottle_count can't be negative or zero" });
             }
 
             next();
@@ -17,8 +17,8 @@ module.exports = {
 
     async checkUser(req, res, next) {
         try {
-            const { userId } = req.body;
-            const user = await dbConnection.query('SELECT * FROM "User" WHERE userId = $1', [userId]);
+            const { user_id } = req.body;
+            const user = await dbConnection.query('SELECT * FROM users WHERE user_id = $1', [user_id]);
 
             if (user.rows.length === 0) {
                 return res.status(400).json({ err: "User could not be found" });
@@ -34,7 +34,7 @@ module.exports = {
         try {
             const { locationId } = req.body;
             const location = await dbConnection.query(
-                "SELECT * FROM Locations WHERE locationsId = $1 AND status = 'active'",
+                "SELECT * FROM locations WHERE location_id = $1 AND status = 'active'",
                 [locationId]
             );
 
@@ -52,7 +52,7 @@ module.exports = {
         try {
             const { locationId } = req.body;
             const location = await dbConnection.query(
-                "SELECT * FROM Locations WHERE locationsId = $1",
+                "SELECT * FROM locations WHERE location_id = $1",
                 [locationId]
             );
 

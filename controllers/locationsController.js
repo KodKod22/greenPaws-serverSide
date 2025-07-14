@@ -4,15 +4,15 @@ exports.locationsController = {
   try {
     const result = await dbConnection.query(`
       SELECT 
-        locations.locationsid,
-        cities.cityname,
+        locations.location_id,
+        cities.city_name,
         locations.street,
-        locations.animelfood,
+        locations.animal_food,
         locations.status,
-        locations.foodcapacity,
+        locations.food_capacity,
         locations.landmarks
       FROM locations
-      INNER JOIN cities ON locations.cityid = cities.cityid
+      INNER JOIN cities ON locations.city_id = cities.city_id
     `);
 
     res.status(200).json(result.rows);
@@ -26,16 +26,16 @@ exports.locationsController = {
              const { locationId } = req.params;
             const result = await dbConnection.query(`
             SELECT 
-                locations.locationsid,
+                locations.location_id,
                 locations.street,
-                locations.animelfood,
+                locations.animal_food,
                 locations.status,
-                locations.foodcapacity,
+                locations.food_capacity,
                 locations.landmarks,
-                cities.cityname
+                cities.city_name
             FROM locations
-            INNER JOIN cities ON locations.cityid = cities.cityid
-            WHERE locations.locationsid = $1
+            INNER JOIN cities ON locations.city_id = cities.city_id
+            WHERE locations.location_id = $1
         `, [locationId]);
             if (result.rows.length === 0) {
                return res.status(404).json({message:"no location in the data base"});
@@ -48,15 +48,15 @@ exports.locationsController = {
     async getLocationByName(req,res){
         try{
             const { city , streetName } = req.query;
-            let cityId;
-            const cityIdResult = await dbConnection.query('SELECT cityid from cities WHERE cityname = $1',[city]);
+            let city_id;
+            const cityIdResult = await dbConnection.query('SELECT city_id from cities WHERE city_name = $1',[city]);
             if (cityIdResult.rows.length > 0) {
-                cityId = cityIdResult.rows[0].cityid;
+                city_id = cityIdResult.rows[0].city_id;
             }
             const result = await dbConnection.query(`
-                SELECT Locations.LocationsId 
-                FROM Locations 
-                WHERE cityid = $1 AND street = $2;`,[cityId,streetName])
+                SELECT locations.location_id 
+                FROM locations 
+                WHERE city_id = $1 AND street = $2;`,[city_id,streetName])
             if (result.rows.length === 0) {
                return res.status(404).json({message:"no location in the data base"});
             }
@@ -67,7 +67,7 @@ exports.locationsController = {
     },
     async updateLocation(req,res){
         try{
-            const { locationId ,animalFood , status , foodCapacity } = req.body;
+            const { locationId ,animalFood , status , food_capacity } = req.body;
             
             if (!locationId) {
                 return res.status(400).json({ error: "locationId is required" });
@@ -77,19 +77,19 @@ exports.locationsController = {
             let index = 1;
 
             if (animalFood !== undefined) {
-                fieldsToUpdate.push(`animelfood = $${index++}`);
+                fieldsToUpdate.push(`animal_food = $${index++}`);
                 values.push(animalFood);
             }
             if (status !== undefined) {
                 fieldsToUpdate.push(`status = $${index++}`);
                 values.push(status);
             }
-            if (foodCapacity !== undefined) {
-                fieldsToUpdate.push(`foodcapacity = $${index++}`);
-                values.push(foodCapacity);
+            if (food_capacity !== undefined) {
+                fieldsToUpdate.push(`food_capacity = $${index++}`);
+                values.push(food_capacity);
             }
             values.push(locationId);
-            const query = `UPDATE Locations SET ${fieldsToUpdate.join(', ')} WHERE locationsid = $${index} RETURNING *`;
+            const query = `UPDATE locations SET ${fieldsToUpdate.join(', ')} WHERE location_id = $${index} RETURNING *`;
 
             const result = await dbConnection.query(query, values);
             if (result.rowCount === 0) {
@@ -107,17 +107,17 @@ exports.locationsController = {
     async addLocation(req,res){
         try{
             const { city , streetName , animalFood , status } = req.body.newLocation;
-            let cityId;
-            const cityIdResult = await dbConnection.query('SELECT cityid from cities WHERE cityname = $1',[city]);
+            let city_id;
+            const cityIdResult = await dbConnection.query('SELECT city_id from cities WHERE city_name = $1',[city]);
 
             if (cityIdResult.rows.length > 0) {
-                cityId = cityIdResult.rows[0].cityid;
+                city_id = cityIdResult.rows[0].city_id;
             }else{
-                const newCityIdResult = await dbConnection.query('INSERT INTO cities (cityname) VALUES ($1) RETURNING cityid',[city]);
-                cityId = newCityIdResult.rows[0].cityid;
+                const newCityIdResult = await dbConnection.query('INSERT INTO cities (city_name) VALUES ($1) RETURNING city_id',[city]);
+                city_id = newCityIdResult.rows[0].city_id;
             }
 
-            const locationResult = await dbConnection.query('SELECT locationsid from locations WHERE street = $1 AND cityid = $2',[streetName,cityId]);
+            const locationResult = await dbConnection.query('SELECT location_id from locations WHERE street = $1 AND city_id = $2',[streetName,city_id]);
             if (locationResult.rows.length > 0 ) {
                 return res.status(409).json({error: "Location already exists"});
             }
@@ -129,11 +129,11 @@ exports.locationsController = {
 
             const landmarks = data.results[0].geometry.location;
             const landmarksText = `${landmarks.lat},${landmarks.lng}`;
-            const insertLocation = await dbConnection.query('INSERT INTO Locations (cityid, street, animelfood, status, landmarks) VALUES ($1, $2, $3, $4, $5) RETURNING locationsid', [cityId, streetName, animalFood, status,landmarksText]);
+            const insertLocation = await dbConnection.query('INSERT INTO locations (city_id, street,animal_food, status, landmarks) VALUES ($1, $2, $3, $4, $5) RETURNING location_id', [city_id, streetName, animalFood, status,landmarksText]);
 
-            const locationId = insertLocation.rows[0].locationsid;
+            const location_id = insertLocation.rows[0].location_id;
 
-            res.status(200).json({ message: "Location added successfully",locationId,});
+            res.status(200).json({ message: "Location added successfully",location_id,});
 
         }catch(err){
             console.error("Add location error:", err);
@@ -142,10 +142,10 @@ exports.locationsController = {
         
     }, async removeLocation(req,res){
         try{
-            const { locationId } = req.params;
-            await dbConnection.query('DELETE FROM RecycleActivity WHERE locationid = $1', [locationId]);
-            await dbConnection.query('DELETE FROM userReguests WHERE locationsid = $1', [locationId]);
-            const result =  await dbConnection.query('DELETE FROM Locations WHERE locationsid = $1', [locationId]);
+            const { location_id } = req.params;
+            await dbConnection.query('DELETE FROM recycle_activity WHERE location_id = $1', [location_id]);
+            await dbConnection.query('DELETE FROM user_reports WHERE location_id = $1', [location_id]);
+            const result =  await dbConnection.query('DELETE FROM locations WHERE location_id = $1', [location_id]);
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Location not found" });
             }
@@ -158,13 +158,13 @@ exports.locationsController = {
     },
     async addBottles(req,res) {
         try{
-            const { userID, locationId, bottleCount } = req.body;   
-            const result = await dbConnection.query('INSERT INTO recycleactivity (userid, locationid, bottlecount,logdate) VALUES ($1,$2,$3,NOW())',[userID, locationId, bottleCount]);
+            const {  user_id,location_id, bottle_count } = req.body;   
+            const result = await dbConnection.query('INSERT INTO recycle_activity ( user_id,location_id,bottle_count,log_date) VALUES ($1,$2,$3,NOW())',[user_id,location_id,bottle_count]);
             res.status(200).json({ message: "Bottles added", entry: result.rows[0] });
             const REDUCTION_PER_BOTTLE = 2; 
-            const reduction = bottleCount * REDUCTION_PER_BOTTLE;
+            const reduction = bottle_count * REDUCTION_PER_BOTTLE;
 
-            await dbConnection.query(`UPDATE Locations SET foodcapacity = GREATEST(foodcapacity - $1, 0) WHERE locationsId = $2`, [reduction, locationId]);
+            await dbConnection.query(`UPDATE locations SET food_capacity = GREATEST(food_capacity - $1, 0) WHERE location_id = $2`, [reduction,location_id]);
         }catch(err){
             res.status(500).json({ error: 'Server error' });
         }
