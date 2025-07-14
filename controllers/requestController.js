@@ -2,10 +2,11 @@ const  dbConnection  = require('../dbConnection.js');
 exports.requestController = {
     async addRequest(req,res){
         try{
-            const {user_id, locationId, description } = req.body;
+            const {user_id, location_id, description } = req.body;
+            
             const result = await dbConnection.query(
-                'INSERT INTO user_reports ( user_id,location_id, description, created_at) VALUES ($1,$2,$3,NOW())',
-                [ user_id, locationId, description]
+                'INSERT INTO user_reports (user_id,location_id, description, created_at) VALUES ($1,$2,$3,NOW())',
+                [ user_id, location_id, description]
             );
             res.status(200).json({ message: "request has been added", entry: result.rows[0] });
         }catch(err){
@@ -15,7 +16,7 @@ exports.requestController = {
     async getUserRequest(req, res) {
   try {
     const { user_id } = req.params;
-    console.log(user_id);
+    
     if (!user_id) {
       return res.status(400).json({ error: " user_id param is missing" });
     }
@@ -67,7 +68,7 @@ exports.requestController = {
     async updateRequest(req,res){
         
         try{
-            const { report_id , status , adminResponds } = req.body;
+            const { report_id , status , admin_responds } = req.body;
             
             const fieldsToUpdate =[];
             const values = [];
@@ -76,9 +77,9 @@ exports.requestController = {
                 fieldsToUpdate.push(`status = $${index++}`);
                 values.push(status);   
             }
-         if (adminResponds !== undefined) {
+         if (admin_responds !== undefined) {
                 fieldsToUpdate.push(`admin_response = $${index++}`);
-                values.push(adminResponds); 
+                values.push(admin_responds); 
             }
             values.push(report_id);
             const query = `UPDATE user_reports SET ${fieldsToUpdate.join(', ')} WHERE report_id = $${index} RETURNING *`;
@@ -96,6 +97,7 @@ exports.requestController = {
     async deleteRequest(req,res){
      try{
             const { report_id } = req.params;
+            
             const result = await dbConnection.query('DELETE FROM user_reports WHERE report_id = $1', [report_id]); 
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Request not found" });

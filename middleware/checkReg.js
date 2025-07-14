@@ -18,6 +18,7 @@ module.exports = {
     async checkUser(req, res, next) {
         try {
             const { user_id } = req.body;
+            
             const user = await dbConnection.query('SELECT * FROM users WHERE user_id = $1', [user_id]);
 
             if (user.rows.length === 0) {
@@ -32,10 +33,10 @@ module.exports = {
 
     async checkLocationIsActive(req, res, next) {
         try {
-            const { locationId } = req.body;
+            const { location_id } = req.body;
             const location = await dbConnection.query(
                 "SELECT * FROM locations WHERE location_id = $1 AND status = 'active'",
-                [locationId]
+                [location_id]
             );
 
             if (location.rows.length === 0) {
@@ -50,10 +51,10 @@ module.exports = {
 
     async checkLocation(req, res, next) {
         try {
-            const { locationId } = req.body;
+            const { location_id } = req.body;
             const location = await dbConnection.query(
                 "SELECT * FROM locations WHERE location_id = $1",
-                [locationId]
+                [location_id]
             );
 
             if (location.rows.length === 0) {

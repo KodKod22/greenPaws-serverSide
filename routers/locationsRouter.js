@@ -9,6 +9,6 @@ locationsRouter.get('/:locationId',locationsController.getLocation);
 locationsRouter.post('/addBottles',checkUser, checkLocationIsActive, checkBottlesCount,locationsController.addBottles);
 locationsRouter.put('/updateLocation',locationsController.updateLocation);
 locationsRouter.post('/newLocation',locationsController.addLocation);
-locationsRouter.delete('/removeLocation/:locationId',locationsController.removeLocation);
+locationsRouter.delete('/removeLocation/:location_id',locationsController.removeLocation);
 
 module.exports = { locationsRouter }

@@ -119,7 +119,7 @@ exports.locationsController = {
 
             const locationResult = await dbConnection.query('SELECT location_id from locations WHERE street = $1 AND city_id = $2',[streetName,city_id]);
             if (locationResult.rows.length > 0 ) {
-                return res.status(409).json({error: "Location already exists"});
+                return res.status(409).json({ error: "Location already exists" });
             }
 
             const encoded = encodeURIComponent(`${streetName} , ${city}`);
@@ -143,9 +143,9 @@ exports.locationsController = {
     }, async removeLocation(req,res){
         try{
             const { location_id } = req.params;
-            await dbConnection.query('DELETE FROM recycle_activity WHERE location_id = $1', [location_id]);
-            await dbConnection.query('DELETE FROM user_reports WHERE location_id = $1', [location_id]);
-            const result =  await dbConnection.query('DELETE FROM locations WHERE location_id = $1', [location_id]);
+            await dbConnection.query('DELETE FROM recycle_activity WHERE location_id  = $1', [location_id]);
+            await dbConnection.query('DELETE FROM user_reports WHERE location_id  = $1', [location_id]);
+            const result =  await dbConnection.query('DELETE FROM locations WHERE location_id  = $1', [location_id]);
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Location not found" });
             }

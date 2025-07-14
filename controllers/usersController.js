@@ -3,12 +3,11 @@ const bcrypt = require('bcrypt');
 exports.usersController = {
     async getUser(req, res) {
     const { user_name , user_password} = req.body;
-        console.log(user_name);
+        
     try {
             const result = await dbConnection.query('SELECT * FROM users WHERE user_name = $1',[user_name]); 
 
             if (result.rows.length === 0) {
-                console.log("User not found");
                 return res.status(404).json({ message: "User not found" });
             }
             const hashUserPassword = result.rows[0].user_password;

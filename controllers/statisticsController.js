@@ -10,11 +10,11 @@ exports.statisticsController = {
                 FROM recycle_activity
                 INNER JOIN locations ON recycle_activity.location_id = locations.location_id
                 WHERE 
-                    location_id = $1
+                     recycle_activity.location_id = $1
                     AND recycle_activity.log_date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
                 GROUP BY locations.street;`,[locationId]);
          if (resolute.rows.length === 0) {
-               return res.status(404).json({message:"no recycle activity in the data base of the location"});
+               return res.status(200).json([]);
             }
             res.status(200).json(resolute.rows);
         }catch(error){
