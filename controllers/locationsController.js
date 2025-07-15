@@ -77,7 +77,7 @@ exports.locationsController = {
 
             if (animal_food !== undefined) {
                 fieldsToUpdate.push(`animal_food = $${index++}`);
-                values.push(animalFood);
+                values.push(animal_food);
             }
             if (status !== undefined) {
                 fieldsToUpdate.push(`status = $${index++}`);
@@ -87,7 +87,7 @@ exports.locationsController = {
                 fieldsToUpdate.push(`food_capacity = $${index++}`);
                 values.push(food_capacity);
             }
-            values.push(locationId);
+            values.push(location_id);
             const query = `UPDATE locations SET ${fieldsToUpdate.join(', ')} WHERE location_id = $${index} RETURNING *`;
 
             const result = await dbConnection.query(query, values);
