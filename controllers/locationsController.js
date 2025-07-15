@@ -107,6 +107,9 @@ exports.locationsController = {
         try{
             const { city , streetName , animalFood , status } = req.body.newLocation;
             let city_id;
+            if (!city || !streetName || !animalFood || !status) {
+                return res.status(400).json({ error: "undefine arguments" });
+            }
             const cityIdResult = await dbConnection.query('SELECT city_id from cities WHERE city_name = $1',[city]);
 
             if (cityIdResult.rows.length > 0) {
