@@ -1,16 +1,22 @@
 const  dbConnection  = require('../dbConnection.js');
 exports.requestController = {
-    async addRequest(req,res){
-        try{
-            const {user_id, location_id, description } = req.body;
-            
+ async addRequest(req, res) {
+    try {
+            const { user_id, location_id, description } = req.body;
+
+            if (!description) {
+                return res.status(400).json({ message: "didn't enter description" });
+            }
+
             const result = await dbConnection.query(
-                'INSERT INTO user_reports (user_id,location_id, description, created_at) VALUES ($1,$2,$3,NOW())',
-                [ user_id, location_id, description]
+                'INSERT INTO user_reports (user_id, location_id, description, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
+                [user_id, location_id, description]
             );
+
             res.status(200).json({ message: "request has been added", entry: result.rows[0] });
-        }catch(err){
-            res.status(500).json({error:'Database error'})
+        } catch (err) {
+            console.error("Add request error:", err);
+            res.status(500).json({ error: 'Database error' });
         }
     },
     async getUserRequest(req, res) {
