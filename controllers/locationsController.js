@@ -66,16 +66,16 @@ exports.locationsController = {
     },
     async updateLocation(req,res){
         try{
-            const { locationId ,animalFood , status , food_capacity } = req.body;
+            const { location_id ,animal_food , status , food_capacity } = req.body;
             
-            if (!locationId) {
+            if (!location_id) {
                 return res.status(400).json({ error: "locationId is required" });
             }
             const fieldsToUpdate =[];
             const values = [];
             let index = 1;
 
-            if (animalFood !== undefined) {
+            if (animal_food !== undefined) {
                 fieldsToUpdate.push(`animal_food = $${index++}`);
                 values.push(animalFood);
             }
