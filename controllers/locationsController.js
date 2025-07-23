@@ -144,7 +144,8 @@ exports.locationsController = {
             }
             const normalizedStreet = streetName.trim().toLowerCase();
             const locationResult = await dbConnection.query(
-                'SELECT location_id FROM locations WHERE LOWER(street) = $1 AND city_id = $2',[normalizedStreet, city_id]
+                'SELECT location_id FROM locations WHERE LOWER(street) = LOWER($1) AND city_id = $2',
+                [streetName.trim(), city_id]
             );
             if (locationResult.rows.length > 0 ) {
                 return res.status(409).json({ error: "Location already exists" });
@@ -154,7 +155,7 @@ exports.locationsController = {
             const landmarksText = `${landmarks.lat},${landmarks.lng}`;
             const insertLocation = await dbConnection.query(
                 'INSERT INTO locations (city_id, street, animal_food, status, landmarks) VALUES ($1, $2, $3, $4, $5) RETURNING location_id',
-                [city_id, normalizedStreet, animalFood, status, landmarksText]
+                [city_id, streetName.trim(), animalFood, status, landmarksText]
             );
 
             const newLocation_id = insertLocation.rows[0].location_id;
