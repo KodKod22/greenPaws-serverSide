@@ -152,7 +152,7 @@ exports.locationsController = {
 
             const landmarks = data.results[0].geometry.location;
             const landmarksText = `${landmarks.lat},${landmarks.lng}`;
-            await dbConnection.query(
+            const insertLocation = await dbConnection.query(
                 'INSERT INTO locations (city_id, street, animal_food, status, landmarks) VALUES ($1, $2, $3, $4, $5)',
                 [city_id, normalizedStreet, animalFood, status, landmarksText]
             );
