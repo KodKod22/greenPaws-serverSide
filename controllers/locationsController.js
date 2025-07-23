@@ -157,9 +157,9 @@ exports.locationsController = {
                 [city_id, normalizedStreet, animalFood, status, landmarksText]
             );
 
-            const location_id = insertLocation.rows[0].location_id;
+            const newLocation_id = insertLocation.rows[0].location_id;
 
-            res.status(200).json({ message: "Location added successfully",location_id,});
+            res.status(200).json({ message: "Location added successfully",newLocation_id,});
 
         }catch(err){
             console.error("Add location error:", err);
