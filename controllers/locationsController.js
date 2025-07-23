@@ -110,12 +110,36 @@ exports.locationsController = {
             if (!city || !streetName || !animalFood || !status) {
                 return res.status(400).json({ error: "undefine arguments" });
             }
-            const cityIdResult = await dbConnection.query('SELECT city_id from cities WHERE city_name = $1',[city]);
+            
+            const encoded = encodeURIComponent(`${streetName} , ${city}`);
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${process.env.API_KEY}`;
+            const resolute = await fetch(url);
+            const data = await resolute.json();
+            if (data.status !== "OK" || !data.results || data.results.length === 0) {
+                return res.status(400).json({ error: "Invalid location or not found" });
+            }
+            
+
+            const addressComponents = data.results[0].address_components;
+            const cityComponent = addressComponents.find(c => c.types.includes("locality"));
+            const validCityName = cityComponent ? cityComponent.long_name : null;
+            
+            if (!validCityName) {
+               
+                return res.status(400).json({ error: "City not found in map data" });
+            }
+
+        
+            if (validCityName.toLowerCase() !== city.toLowerCase()) {
+                return res.status(400).json({ error: `City name mismatch`});
+            }
+            
+            const cityIdResult = await dbConnection.query('SELECT city_id from cities WHERE city_name = $1',[validCityName]);
 
             if (cityIdResult.rows.length > 0) {
                 city_id = cityIdResult.rows[0].city_id;
             }else{
-                const newCityIdResult = await dbConnection.query('INSERT INTO cities (city_name) VALUES ($1) RETURNING city_id',[city]);
+                const newCityIdResult = await dbConnection.query('INSERT INTO cities (city_name) VALUES ($1) RETURNING city_id',[validCityName]);
                 city_id = newCityIdResult.rows[0].city_id;
             }
 
@@ -123,11 +147,6 @@ exports.locationsController = {
             if (locationResult.rows.length > 0 ) {
                 return res.status(409).json({ error: "Location already exists" });
             }
-
-            const encoded = encodeURIComponent(`${streetName} , ${city}`);
-            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${process.env.API_KEY}`;
-            const resolute = await fetch(url);
-            const data = await resolute.json();
 
             const landmarks = data.results[0].geometry.location;
             const landmarksText = `${landmarks.lat},${landmarks.lng}`;
