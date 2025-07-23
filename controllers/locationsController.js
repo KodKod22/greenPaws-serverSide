@@ -142,15 +142,20 @@ exports.locationsController = {
                 const newCityIdResult = await dbConnection.query('INSERT INTO cities (city_name) VALUES ($1) RETURNING city_id',[validCityName]);
                 city_id = newCityIdResult.rows[0].city_id;
             }
-
-            const locationResult = await dbConnection.query('SELECT location_id from locations WHERE street = $1 AND city_id = $2',[streetName,city_id]);
+            const normalizedStreet = streetName.trim().toLowerCase();
+            const locationResult = await dbConnection.query(
+                'SELECT location_id FROM locations WHERE LOWER(street) = $1 AND city_id = $2',[normalizedStreet, city_id]
+            );
             if (locationResult.rows.length > 0 ) {
                 return res.status(409).json({ error: "Location already exists" });
             }
 
             const landmarks = data.results[0].geometry.location;
             const landmarksText = `${landmarks.lat},${landmarks.lng}`;
-            const insertLocation = await dbConnection.query('INSERT INTO locations (city_id, street,animal_food, status, landmarks) VALUES ($1, $2, $3, $4, $5) RETURNING location_id', [city_id, streetName, animalFood, status,landmarksText]);
+            await dbConnection.query(
+                'INSERT INTO locations (city_id, street, animal_food, status, landmarks) VALUES ($1, $2, $3, $4, $5)',
+                [city_id, normalizedStreet, animalFood, status, landmarksText]
+            );
 
             const location_id = insertLocation.rows[0].location_id;
 
